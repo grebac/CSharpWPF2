@@ -11,12 +11,12 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
-using System.Windows.Shapes;
 using Microsoft.Win32;
 using System.IO;
 using Excel = Microsoft.Office.Interop.Excel;
 using System.Reflection;
 using Microsoft.Maps.MapControl.WPF;
+using MyCartographyObjects;
 
 
 namespace testWPF
@@ -29,39 +29,21 @@ namespace testWPF
         #region variables
         private string _objetSelect = "";
         private string _action = "";
+        private List<TextBox> _listTextBox = new List<TextBox>();
         //Excel.Application app = null;
         //Excel.Workbook wb = null;
         //Excel.Worksheet ws = null;
         MapPolygon polygon = null;
         MapPolyline polyline = null;
         Pushpin pin = null;
-
-        private List<MapPolygon> _listePolygon = new List<MapPolygon>();
-        private List<MapPolyline> _listePolyline = new List<MapPolyline>();
-        private List<Pushpin> _listePushPin = new List<Pushpin>();
+        Polygon polygonPerso = null;
+        Polyline polylinePerso = null;
+        POI poiPerso = null;
+        MyPersonalMapData MyPersonalMap = new MyPersonalMapData("sami", "caberg");
         #endregion
+        
 
         #region propriété
-        public List<Pushpin> ListePushpin
-        {
-            get { return _listePushPin; }
-            set { _listePushPin = value; }
-        }
-
-
-        public List<MapPolyline> ListePolyline
-        {
-            get { return _listePolyline; }
-            set { _listePolyline = value; }
-        }
-
-
-        public List<MapPolygon> ListePolygon
-        {
-            get { return _listePolygon; }
-            set { _listePolygon = value; }
-        }
-
         public string ObjetSelect
         {
             get { return _objetSelect; }
@@ -73,14 +55,16 @@ namespace testWPF
             get { return _action; }
             set { _action = value; }
         }
-
+        public List<TextBox> ListTextBox
+        {
+            get { return _listTextBox; }
+            set { _listTextBox = value; }
+        }
         #endregion
 
         public MainWindow()
         {
             InitializeComponent();
-            connexion co = new connexion();
-            co.Show();
         }
 
         #region defineAction
@@ -250,12 +234,23 @@ namespace testWPF
                 releaseObject(app);
              }
                 */
+            TextBox tmp = null;
+            foreach(POI element in MyPersonalMap.CollectionObjets)
+            {
+                tmp = new TextBox();
+                tmp.Text = element.Description;
+                stackDesc.Children.Add(tmp);
+
+                tmp = new TextBox();
+                tmp.Text = "POI";
+                stackType.Children.Add(tmp);
+            }
         }
         
 
         private void BouttonFileSave_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("en construction");
+            //MyPersonalMap.export("C:\\Users\\sami\\Documents\\école");
         }
         #endregion
 
@@ -278,23 +273,18 @@ namespace testWPF
             }
         }
 
-        private bool IsCloseTo(double x1, double y1, double x2, double y2, double precision)
-        {
-            double Xtmp = Math.Pow(x2 - x1,2);
-            double Ytmp = Math.Pow(y2 - y1, 2);
-            double distanceFinale = Math.Pow(Xtmp + Ytmp,0.5);
-
-            return (precision >= distanceFinale);
-        }
-
         private void initObjet()
         {
+            TextBox tmp = null;
             switch (ObjetSelect)
             {
                 case "POI":
                     //création nouveau pin
                     pin = new Pushpin();
+                    poiPerso = new POI();
+                    poiPerso.ObjetLie = pin;
                     break;
+                    
 
                 case "Polyline":
                     //création nouveau polyline
@@ -303,10 +293,23 @@ namespace testWPF
                     polyline.StrokeThickness = 5;
                     polyline.Opacity = 0.7;
                     polyline.Locations = new LocationCollection();
+                    polylinePerso = new Polyline();
+                    polylinePerso.ObjetLie = polyline;
 
                     //ajout dans la liste et sur la map
                     Map.Children.Add(polyline);
-                    ListePolyline.Add(polyline);
+                    MyPersonalMap.CollectionObjets.Add(polylinePerso);
+
+                    //ajout dans la liste visuelle
+                    tmp = new TextBox();
+                    tmp.Text = "...";
+                    stackDesc.Children.Add(tmp);
+                    ListTextBox.Add(tmp);
+
+                    tmp = new TextBox();
+                    tmp.Text = "polyline";
+                    stackType.Children.Add(tmp);
+                    ListTextBox.Add(tmp);
                     break;
 
                 case "Polygon":
@@ -317,10 +320,23 @@ namespace testWPF
                     polygon.StrokeThickness = 5;
                     polygon.Opacity = 0.7;
                     polygon.Locations = new LocationCollection();
+                    polygonPerso = new Polygon();
+                    polygonPerso.ObjetLie = polygon;
 
                     //ajout dans la liste et sur la map
                     Map.Children.Add(polygon);
-                    ListePolygon.Add(polygon);
+                    MyPersonalMap.CollectionObjets.Add(polygonPerso);
+
+                    //ajout dans la liste visuelle
+                    tmp = new TextBox();
+                    tmp.Text = "...";
+                    stackDesc.Children.Add(tmp);
+                    ListTextBox.Add(tmp);
+
+                    tmp = new TextBox();
+                    tmp.Text = "polygon";
+                    stackType.Children.Add(tmp);
+                    ListTextBox.Add(tmp);
                     break;
 
                 default: break;
@@ -334,20 +350,36 @@ namespace testWPF
             {
                 case "POI":
                     pin.Location = location;
+                    poiPerso.Longitude = location.Longitude;
+                    poiPerso.Latitude = location.Latitude;
 
                     //ajout dans la liste et sur la map
                     Map.Children.Add(pin);
-                    ListePushpin.Add(pin);
+                    MyPersonalMap.CollectionObjets.Add(poiPerso);
 
+                    //ajout dans la liste visuelle
+                    TextBox tmp = new TextBox();
+                    tmp.Text = "...";
+                    stackDesc.Children.Add(tmp);
+                    ListTextBox.Add(tmp);
+
+                    tmp = new TextBox();
+                    tmp.Text = "POI";
+                    stackType.Children.Add(tmp);
+                    ListTextBox.Add(tmp);
+
+                    //on initialise un nouveau pushpin pour enchainer la création
                     initObjet();
                     break;
 
                 case "Polyline":
                     polyline.Locations.Add(location);
+                    polylinePerso.add(new Coordonnees(location.Latitude, location.Longitude));
                     break;
 
                 case "Polygon":
                     polygon.Locations.Add(location);
+                    polygonPerso.add(new Coordonnees(location.Latitude, location.Longitude));
                     break;
 
                 default:
@@ -356,58 +388,65 @@ namespace testWPF
             }
         }
 
-        private Pushpin recherchePushpin(Point Pos)
+        private POI recherchePOI(Point Pos)
         {
-            Point tmp = new Point();
-
-            foreach (Pushpin element in ListePushpin)
+            Location location = Map.ViewportPointToLocation(Pos);
+            POI poitmp = null;
+            int i = 0;
+            int lenght = MyPersonalMap.CollectionObjets.Count();
+            while(i < lenght)
             {
-                tmp = Map.LocationToViewportPoint(element.Location);
-
-                if (IsCloseTo(tmp.X, tmp.Y, Pos.X, Pos.Y, 20))
+                if (MyPersonalMap.CollectionObjets[i] is POI)
                 {
-                    Map.Children.Remove(element);
-                    ListePushpin.Remove(element);
-                    return element;
+                    poitmp = (POI)MyPersonalMap.CollectionObjets[i];
+                    if (poitmp.IsPointClose(new Coordonnees(location.Latitude, location.Longitude), 0.00004))
+                        return poitmp;
                 }
+                i++;
             }
             return null;
         }
 
-        private MapPolygon recherchePolygon(Point Pos)
+        private Polygon recherchePolygon(Point Pos)
         {
-
-            foreach (MapPolygon element in ListePolygon)
+            Location location = Map.ViewportPointToLocation(Pos);
+            Polygon polytmp;
+            int i = 0;
+            int lenght = MyPersonalMap.CollectionObjets.Count();
+            while(i < lenght)
             {
-                Point tmp = new Point();
-
-                foreach (Location locElement in element.Locations)
+                if(MyPersonalMap.CollectionObjets[i] is Polygon)
                 {
-                    tmp = Map.LocationToViewportPoint(locElement);
-
-                    if (IsCloseTo(tmp.X, tmp.Y, Pos.X, Pos.Y, 20))
+                    polytmp = (Polygon)MyPersonalMap.CollectionObjets[i];
+                    foreach (Coordonnees coordonnees in polytmp.Liste)
                     {
-                        return element;
+                        if (coordonnees.IsPointClose(new Coordonnees(location.Latitude, location.Longitude), 0.00004))
+                            return polytmp;
                     }
                 }
+                i++;
             }
             return null;
         }
 
-        private MapPolyline recherchePolyline(Point Pos)
+        private Polyline recherchePolyline(Point Pos)
         {
-            Point tmp = new Point();
-            foreach (MapPolyline element in ListePolyline)
+            Location location = Map.ViewportPointToLocation(Pos);
+            Polyline polytmp;
+            int i = 0;
+            int lenght = MyPersonalMap.CollectionObjets.Count();
+            while (i < lenght)
             {
-                foreach (Location locElement in element.Locations)
+                if (MyPersonalMap.CollectionObjets[i] is Polyline)
                 {
-                    tmp = Map.LocationToViewportPoint(locElement);
-
-                    if (IsCloseTo(tmp.X, tmp.Y, Pos.X, Pos.Y, 20))
+                    polytmp = (Polyline)MyPersonalMap.CollectionObjets[i];
+                    foreach (Coordonnees coordonnees in polytmp.Liste)
                     {
-                        return element;
+                        if (coordonnees.IsPointClose(new Coordonnees(location.Latitude, location.Longitude), 0.00004))
+                            return polytmp;
                     }
                 }
+                i++;
             }
             return null;
         }
@@ -417,32 +456,33 @@ namespace testWPF
             switch (ObjetSelect)
             {
                 case "POI":
-                    pin = recherchePushpin(Pos);
+                    poiPerso = null;
+                    poiPerso = recherchePOI(Pos);
 
-                    if (pin != null)
+                    if (poiPerso != null)
                     {
-                        Map.Children.Remove(pin);
-                        ListePushpin.Remove(pin);
+                        Map.Children.Remove(poiPerso.ObjetLie);
+                        MyPersonalMap.CollectionObjets.Remove(poiPerso);
                     }
                     break;
 
                 case "Polygon":
-                    polygon = recherchePolygon(Pos);
+                    polygonPerso = recherchePolygon(Pos);
 
-                    if(polygon != null)
+                    if(polygonPerso != null)
                     {
-                        Map.Children.Remove(polygon);
-                        ListePolygon.Remove(polygon);
+                        Map.Children.Remove(polygonPerso.ObjetLie);
+                        MyPersonalMap.CollectionObjets.Remove(polygonPerso);
                     }
                     break;
 
                 case "Polyline":
-                    polyline = recherchePolyline(Pos);
+                    polylinePerso = recherchePolyline(Pos);
 
-                    if (polyline != null)
+                    if (polylinePerso != null)
                     {
-                        Map.Children.Remove(polyline);
-                        ListePolyline.Remove(polyline);
+                        Map.Children.Remove(polylinePerso.ObjetLie);
+                        MyPersonalMap.CollectionObjets.Remove(polylinePerso);
                     }
                     break;
 
@@ -465,8 +505,9 @@ namespace testWPF
                 //récupération des coordonnées du click
                 Point Pos = e.GetPosition(this);
                 Pos.Y = Pos.Y - MenuOptions.Height - toolBar.Height;
+                Pos.X = Pos.X - gridListeData.Width;
 
-                switch(Action)
+                switch (Action)
                 {
                     case "creer":
                         creerObjet(Pos);

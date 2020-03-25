@@ -89,10 +89,37 @@
                 </ToolBar>
             </ToolBarTray>
         </Grid>
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="200"></ColumnDefinition>
+                <ColumnDefinition></ColumnDefinition>
+            </Grid.ColumnDefinitions>
 
-        <m:Map x:Name="Map" CredentialsProvider="Au1DwhMnLWyvsAbYS1Rq1idPj7mV6Z5i-oQ_Szgo2Mi1HysVM9QpAeeoBDQvr-Kp" Grid.Row="2" Center="37.806029,-122.407007" ZoomLevel="18" Mode="Road" MouseDoubleClick="Map_MouseDoubleClick" >
 
-        </m:Map>
+            <Grid x:Name="gridListeData" Grid.Column="0" Width="200" Background="Blue" HorizontalAlignment="Left">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="50" MinWidth="50"></ColumnDefinition>
+                    <ColumnDefinition Width="150"></ColumnDefinition>
+                    <ColumnDefinition></ColumnDefinition>
+                </Grid.ColumnDefinitions>
+
+
+                <StackPanel x:Name="stackType" Grid.Column="0" HorizontalAlignment="Left" Background="Red" Width="50">
+                    <Border BorderBrush="Black" BorderThickness="2">
+                        <TextBlock Text="type"></TextBlock>
+                    </Border>
+                </StackPanel>
+
+                <StackPanel x:Name="stackDesc" Grid.Column="1" HorizontalAlignment="Left" Background="Yellow" Width="150">
+                    <Border x:Name="gridSplitterDesc" BorderBrush="Black" BorderThickness="2">
+                        <TextBlock Text="description" HorizontalAlignment="Center"></TextBlock>
+                    </Border>
+                </StackPanel>
+
+            </Grid>
+
+            <m:Map x:Name="Map" Grid.Column="1" CredentialsProvider="Au1DwhMnLWyvsAbYS1Rq1idPj7mV6Z5i-oQ_Szgo2Mi1HysVM9QpAeeoBDQvr-Kp" Center="37.806029,-122.407007" ZoomLevel="18" Mode="Road" MouseDoubleClick="Map_MouseDoubleClick" />
+        </Grid>
     </Grid>
 
 </Window>
